@@ -9,15 +9,18 @@ export function sanitizeFilename(
   platform: string,
   filenameToSanitize: string,
 ): string {
-  let result = sanitize(filenameToSanitize);
+  let result: string = sanitize(filenameToSanitize);
 
-  // remove all non ascii or use default app name
-  // eslint-disable-next-line no-control-regex
-  result = result.replace(/[^\x00-\x7F]/g, '') || DEFAULT_APP_NAME;
+  // remove all non ascii / file-problematic chars, or use default app name
+  /* eslint-disable no-control-regex */
+  result =
+    result.replace(/[^\x00-\x7F]/g, '').replace(/[/,;.\\]/g, '') ||
+    DEFAULT_APP_NAME;
+  /* eslint-enable no-control-regex */
 
   // spaces will cause problems with Ubuntu when pinned to the dock
   if (platform === 'linux') {
-    result = result.replace(/ /g, '');
+    result = result.replace(/\s/g, '');
   }
   log.debug(`Sanitized filename for ${filenameToSanitize} : ${result}`);
   return result;

@@ -1,6 +1,21 @@
 # Nativefier
 
-[![Build Status](https://travis-ci.org/jiahaog/nativefier.svg)](https://travis-ci.org/jiahaog/nativefier)
+👋 dear users / contributors! Public service announcement!
+
+Nativefier is maintained by YOU. It's reasonably sane to hack on nowadays,
+it fits the use cases needed by the original author and the current maintainer,
+so _we_ are not doing any active development.
+
+But it's alive! It at least follows Electron releases with maintenance patches,
+and if YOU use it and want to see juicy features & fixes, PR welcome!
+Help welcome in particular on our [pinned issues](https://github.com/nativefier/nativefier/issues),
+or any issue / feature that motivates you 🙂.
+
+Thanks! Take care.
+
+---
+
+[![Build Status](https://github.com/nativefier/nativefier/workflows/ci/badge.svg)](https://github.com/nativefier/nativefier/actions?query=workflow%3Aci)
 [![npm version](https://badge.fury.io/js/nativefier.svg)](https://www.npmjs.com/package/nativefier)
 
 ![Dock](docs/dock.png)
@@ -15,85 +30,75 @@ nativefier web.whatsapp.com
 
 You're done.
 
-## Table of Contents
-
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [How it works](#how-it-works)
-  - [Development](docs/development.md)
-  - [License](#license)
-
 ## Introduction
 
-Nativefier is a command-line tool to easily create a desktop application for any web site with succinct and minimal configuration. Apps are wrapped by [Electron](https://www.electronjs.org/) in an OS executable (`.app`, `.exe`, etc.) for use on Windows, macOS and Linux.
+Nativefier is a command-line tool to easily create a desktop app for any web site
+with minimal configuration. Apps are wrapped by [Electron](https://www.electronjs.org/)
+(which uses Chromium under the hood) in an OS executable (`.app`, `.exe`, etc)
+for use on Windows, macOS and Linux.
 
-I did this because I was tired of having to `⌘-tab` or `alt-tab` to my browser and then search through the numerous open tabs when I was using [Facebook Messenger](https://messenger.com) or [Whatsapp Web](https://web.whatsapp.com) ([relevant Hacker News thread](https://news.ycombinator.com/item?id=10930718)).
+I did this because I was tired of having to `⌘-tab` or `alt-tab` to my browser and then search
+through the numerous open tabs when I was using [Facebook Messenger](https://messenger.com) or
+[Whatsapp Web](https://web.whatsapp.com) ([HN thread](https://news.ycombinator.com/item?id=10930718)). Nativefier features:
 
-[Changelog](https://github.com/jiahaog/nativefier/blob/master/CHANGELOG.md). [Developer docs](https://github.com/jiahaog/nativefier/blob/master/docs/development.md).
-
-Features:
-
-- Automatically retrieves the correct icon and app name.
+- Automatically retrieval of app icon / name.
 - JavaScript and CSS injection.
 - Many more, see the [API docs](docs/api.md) or `nativefier --help`
 
 ## Installation
 
 - macOS 10.9+ / Windows / Linux
-- [Node.js](https://nodejs.org/) `>=8`
+- [Node.js](https://nodejs.org/) `>= 10` and npm `>= 6`
 - Optional dependencies:
-    - [ImageMagick](http://www.imagemagick.org/) to convert icons. Make sure `convert` and `identify` are in your `$PATH`.
-    - [Wine](https://www.winehq.org/) to package Windows apps under non-Windows platforms. Make sure `wine` is in your `$PATH`.
+    - [ImageMagick](http://www.imagemagick.org/) or [GraphicsMagick](http://www.graphicsmagick.org/) to convert icons.
+      Make sure `convert` and `identify` or `gm` are in your system `$PATH`.
+    - [Wine](https://www.winehq.org/) to package Windows apps under non-Windows platforms.
+      Make sure `wine` is in your system `$PATH`.
 
-```bash
-npm install nativefier -g
-```
+Then, install Nativefier globally with  `npm install -g nativefier`
 
 ## Usage
 
-Creating a native desktop app for [medium.com](https://medium.com):
+To create a native desktop app for [medium.com](https://medium.com),
+simply  `nativefier "medium.com"`
+
+Nativefier will try to determine the app name, and well as lots of other options.
+If desired, these options can be overwritten. For example, to override the name,
+`nativefier --name 'My Medium App' 'medium.com'`
+
+**Read the [API documentation](docs/api.md) or run `nativefier --help`**
+to learn about other command-line flags usable to configure the packaged app.
+
+To have high-resolution icons used by default for an app/domain, please
+contribute to the [icon repository](https://github.com/nativefier/nativefier-icons)!
+
+## Usage with Docker
+
+Nativefier is also usable from Docker.
+- Pull the latest stable image from Docker Hub: `docker pull nativefier/nativefier`
+- ... or build the image yourself: `docker build -t local/nativefier .`
+  (in this case, replace `nativefier/` in the below examples with `local/`)
+
+By default, the command `nativefier --help` will be executed.
+To build e.g. a Gmail nativefier app to a writable local `~/nativefier-apps`,
 
 ```bash
-nativefier "medium.com"
+docker run --rm -v ~/nativefier-apps:/target/ nativefier/nativefier https://mail.google.com/ /target/
 ```
 
-Nativefier will attempt to determine the app name, your OS and processor architecture, among other options. If desired, the app name or other options can be overwritten by specifying the `--name "Medium"` as part of the command line options:
+You can pass Nativefier flags, and mount volumes to provide local files. For example, to use an icon,
 
 ```bash
-nativefier --name "Some Awesome App" "medium.com"
+docker run --rm -v ~/my-icons-folder/:/src -v $TARGET-PATH:/target nativefier/nativefier --icon /src/icon.png --name whatsApp -p linux -a x64 https://web.whatsapp.com/ /target/
 ```
-
-Read the [API documentation](docs/api.md) (or `nativefier --help`) for other command-line flags that can be used to configure the packaged app.
-
-To have high-resolution icons used by default for an app/domain, please contribute to the [icon repository](https://github.com/jiahaog/nativefier-icons)!
-
-Note that the application menu is hidden by default for a minimal UI. You can press the `alt` keyboard key to access it.
-
-## How it works
-
-A template app with the appropriate plumbing is included in the `./app` folder. When `nativefier` is run, this template is parameterized, and packaged using [Electron Packager](https://github.com/electron-userland/electron-packager).
-
-In addition, I built [GitCloud](https://github.com/jiahaog/gitcloud) to use GitHub as an icon index, and also the [pageIcon](https://github.com/jiahaog/page-icon) fallback to infer a relevant icon from a URL.
 
 ## Development
 
-Help welcome on [bugs](https://github.com/jiahaog/nativefier/issues?q=is%3Aissue+label%3Abug) and [feature requests](https://github.com/jiahaog/nativefier/issues?q=is%3Aissue+label%3A%22feature+request%22)!
+Help welcome on [bugs](https://github.com/nativefier/nativefier/issues?q=is%3Aopen+is%3Aissue+label%3Abug) and
+[feature requests](https://github.com/nativefier/nativefier/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request).
 
-Get started with our docs: [Development](docs/development.md), [API](docs/api.md).
-
-## Docker Image
-
-The [Dockerfile](Dockerfile) is designed to be used like the "normal" nativefier app. By default, the command `nativefier --help` will be executed. Before you can use the image, you have to build it:
-
-    docker build -t local/nativefier .
- 
-After that, you can build your first nativefier app to the local `$TARGET-PATH`. Ensure you have write access to the `$TARGET-PATH`:
-
-    docker run -v $TARGET-PATH:/target local/nativefier https://my-web-app.com/ /target/
-
-You can also pass nativefier flags, and mount additional volumes to provide local files. For example, to use a icon:
-
-    docker run -v $PATH_TO_ICON/:/src -v $TARGET-PATH:/target local/nativefier --icon /src/icon.png --name whatsApp -p linux -a x64 https://my-web-app.com/ /target/
+[Developer / build docs](docs/development.md), [API documentation](docs/api.md), 
+[Changelog](CHANGELOG.md).
 
 ## License
 

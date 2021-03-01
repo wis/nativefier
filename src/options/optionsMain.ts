@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 
+import axios from 'axios';
 import * as log from 'loglevel';
 
 // package.json is `require`d to let tsc strip the `src` folder by determining
@@ -20,6 +21,7 @@ const SEMVER_VERSION_NUMBER_REGEX = /\d+\.\d+\.\d+[-_\w\d.]*/;
 /**
  * Process and validate raw user arguments
  */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function getOptions(rawOptions: any): Promise<AppOptions> {
   const options: AppOptions = {
     packager: {
@@ -45,6 +47,7 @@ export async function getOptions(rawOptions: any): Promise<AppOptions> {
       },
     },
     nativefier: {
+      accessibilityPrompt: true,
       alwaysOnTop: rawOptions.alwaysOnTop || false,
       backgroundColor: rawOptions.backgroundColor || null,
       basicAuthPassword: rawOptions.basicAuthPassword || null,
@@ -58,6 +61,8 @@ export async function getOptions(rawOptions: any): Promise<AppOptions> {
       disableDevTools: rawOptions.disableDevTools,
       disableGpu: rawOptions.disableGpu || false,
       diskCacheSize: rawOptions.diskCacheSize || null,
+      disableOldBuildWarning:
+        rawOptions.disableOldBuildWarningYesiknowitisinsecure || false,
       enableEs3Apis: rawOptions.enableEs3Apis || false,
       fastQuit: rawOptions.fastQuit || false,
       fileDownloadOptions: rawOptions.fileDownloadOptions,
@@ -70,6 +75,7 @@ export async function getOptions(rawOptions: any): Promise<AppOptions> {
       inject: rawOptions.inject || [],
       insecure: rawOptions.insecure || false,
       internalUrls: rawOptions.internalUrls || null,
+      blockExternalUrls: rawOptions.blockExternalUrls || false,
       maximize: rawOptions.maximize || false,
       nativefierVersion: packageJson.version,
       processEnvs: rawOptions.processEnvs,
@@ -96,6 +102,7 @@ export async function getOptions(rawOptions: any): Promise<AppOptions> {
   if (options.nativefier.verbose) {
     log.setLevel('trace');
     try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('debug').enable('electron-packager');
     } catch (err) {
       log.debug(
@@ -127,6 +134,26 @@ export async function getOptions(rawOptions: any): Promise<AppOptions> {
     }
   }
 
+  if (rawOptions.widevine) {
+    const widevineElectronVersion = `${options.packager.electronVersion}-wvvmp`;
+    try {
+      await axios.get(
+        `https://github.com/castlabs/electron-releases/releases/tag/v${widevineElectronVersion}`,
+      );
+    } catch (error) {
+      throw `\nERROR: castLabs Electron version "${widevineElectronVersion}" does not exist. \nVerify versions at https://github.com/castlabs/electron-releases/releases. \nAborting.`;
+    }
+
+    options.packager.electronVersion = widevineElectronVersion;
+    process.env.ELECTRON_MIRROR =
+      'https://github.com/castlabs/electron-releases/releases/download/';
+    log.warn(
+      `\nATTENTION: Using the **unofficial** Electron from castLabs`,
+      "\nIt implements Google's Widevine Content Decryption Module (CDM) for DRM-enabled playback.",
+      `\nSimply abort & re-run without passing the widevine flag to default to ${DEFAULT_ELECTRON_VERSION}`,
+    );
+  }
+
   if (options.nativefier.flashPluginDir) {
     options.nativefier.insecure = true;
   }
@@ -135,13 +162,12 @@ export async function getOptions(rawOptions: any): Promise<AppOptions> {
     options.nativefier.userAgent = null;
   }
 
-  if (options.packager.platform.toLowerCase() === 'windows') {
+  const platform = options.packager.platform.toLowerCase();
+  if (platform === 'windows') {
     options.packager.platform = 'win32';
   }
 
-  if (
-    ['osx', 'mac', 'macos'].includes(options.packager.platform.toLowerCase())
-  ) {
+  if (['osx', 'mac', 'macos'].includes(platform)) {
     options.packager.platform = 'darwin';
   }
 

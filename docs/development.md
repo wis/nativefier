@@ -2,24 +2,21 @@
 
 ## Setup
 
-First, clone the project
+First, clone the project:
 
 ```bash
-git clone https://github.com/jiahaog/nativefier.git
+git clone https://github.com/nativefier/nativefier.git
 cd nativefier
 ```
 
-Install dependencies for both the CLI and the Electron app:
+Install dependencies (for both the CLI and the Electron app):
 
 ```bash
-# Under Linux and macOS:
-npm run dev-up
-
-# Under Windows:
-npm run dev-up-win
+npm install
 ```
 
-Build nativefier:
+The above `npm install` will build automatically (through the `prepare` hook).
+When you need to re-build Nativefier,
 
 ```bash
 npm run build
@@ -40,7 +37,8 @@ After doing so, you can run Nativefier with your test parameters:
 nativefier --your-awesome-new-flag 'https://your-test-site.com'
 ```
 
-Then run your nativefier app *through the command line too* (to see logs & errors):
+Then run your nativefier app _through the command line too_ (to see logs & errors):
+
 ```bash
 # Under Linux
 ./your-test-site-linux-x64/your-test-site
@@ -49,7 +47,7 @@ Then run your nativefier app *through the command line too* (to see logs & error
 your-test-site-win32-x64/your-test-site.exe
 
 # Under macOS
-open -a YourTestSite.app
+./YourTestSite-darwin-x64/YourTestSite.app/Contents/MacOS/YourTestSite --verbose
 ```
 
 ## Linting & formatting
@@ -67,5 +65,6 @@ but is painful to do manually. Do yourself a favor and install a
 - Logging is suppressed by default in tests, to avoid polluting Jest output.
   To get debug logs, `npm run test:withlog` or set the `LOGLEVEL` env. var.
 - For a good live experience, open two terminal panes/tabs running code/tests watchers:
-    1. Run a TSC watcher: `npm run build:watch`
-    2. Run a Jest unit tests watcher: `npm run test:watch`
+  1. Run a TSC watcher: `npm run build:watch`
+  2. Run a Jest unit tests watcher: `npm run test:watch`
+- Alternatively, you can run both test processes in the same terminal by running: `npm run watch`

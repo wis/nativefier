@@ -6,6 +6,7 @@ import * as dns from 'dns';
 import * as log from 'loglevel';
 
 import { buildNativefierApp } from './main';
+import { isArgFormatInvalid } from './helpers/helpers';
 import { isWindows } from './helpers/helpers';
 
 // package.json is `require`d to let tsc strip the `src` folder by determining
@@ -68,6 +69,12 @@ function checkInternet(): void {
 if (require.main === module) {
   const sanitizedArgs = [];
   process.argv.forEach((arg) => {
+    if (isArgFormatInvalid(arg)) {
+      log.error(
+        `Invalid argument passed: ${arg} .\nNativefier supports short options (like "-n") and long options (like "--name"), all lowercase. Run "nativefier --help" for help.\nAborting`,
+      );
+      process.exit(1);
+    }
     if (sanitizedArgs.length > 0) {
       const previousArg = sanitizedArgs[sanitizedArgs.length - 1];
 
@@ -96,7 +103,7 @@ if (require.main === module) {
     })
     .option('-n, --name <value>', 'app name')
     .option('-p, --platform <value>', "'mac', 'mas', 'linux' or 'windows'")
-    .option('-a, --arch <value>', "'ia32' or 'x64' or 'armv7l'")
+    .option('-a, --arch <value>', "'ia32' or 'x64' or 'arm' or 'arm64'")
     .option(
       '--app-version <value>',
       '(macOS, windows only) the version of the app. Maps to the `ProductVersion` metadata property on Windows, and `CFBundleShortVersionString` on macOS.',
@@ -119,6 +126,10 @@ if (require.main === module) {
       "electron version to package, without the 'v', see https://github.com/electron/electron/releases",
     )
     .option(
+      '--widevine',
+      "use a Widevine-enabled version of Electron for DRM playback (use at your own risk, it's unofficial, provided by CastLabs)",
+    )
+    .option(
       '--no-overwrite',
       'do not override output directory if it already exists; defaults to false',
     )
@@ -132,11 +143,11 @@ if (require.main === module) {
     )
     .option(
       '--bounce',
-      '(macOS only) make he dock icon bounce when the counter increases; defaults to false',
+      '(macOS only) make the dock icon bounce when the counter increases; defaults to false',
     )
     .option(
       '-i, --icon <value>',
-      'the icon file to use as the icon for the app (should be a .png)',
+      'the icon file to use as the icon for the app (should be a .png, on macOS can also be an .icns)',
     )
     .option(
       '--width <value>',
@@ -225,6 +236,10 @@ if (require.main === module) {
       'regex of URLs to consider "internal"; all other URLs will be opened in an external browser. Default: URLs on same second-level domain as app',
     )
     .option(
+      '--block-external-urls',
+      `forbid navigation to URLs not considered "internal" (see '--internal-urls').  Instead of opening in an external browser, attempts to navigate to external URLs will be blocked. Default: false`,
+    )
+    .option(
       '--proxy-rules <value>',
       'proxy rules; see https://www.electronjs.org/docs/api/session#sessetproxyconfig',
     )
@@ -264,16 +279,20 @@ if (require.main === module) {
     )
     .option(
       '--global-shortcuts <value>',
-      'JSON file defining global shortcuts. See https://github.com/jiahaog/nativefier/blob/master/docs/api.md#global-shortcuts',
+      'JSON file defining global shortcuts. See https://github.com/nativefier/nativefier/blob/master/docs/api.md#global-shortcuts',
     )
     .option(
       '--browserwindow-options <json-string>',
-      'a JSON string that will be sent directly into electron BrowserWindow options. See https://github.com/jiahaog/nativefier/blob/master/docs/api.md#browserwindow-options',
+      'a JSON string that will be sent directly into electron BrowserWindow options. See https://github.com/nativefier/nativefier/blob/master/docs/api.md#browserwindow-options',
       parseJson,
     )
     .option(
       '--background-color <value>',
       "sets the app background color, for better integration while the app is loading. Example value: '#2e2c29'",
+    )
+    .option(
+      '--disable-old-build-warning-yesiknowitisinsecure',
+      'Disables warning when opening an app made with an old version of Nativefier. Nativefier uses the Chrome browser (through Electron), and it is dangerous to keep using an old version of it.)',
     )
     .option(
       '--darwin-dark-mode-support',
@@ -292,15 +311,7 @@ if (require.main === module) {
   }
   checkInternet();
   const options = { ...positionalOptions, ...commander.opts() };
-  buildNativefierApp(options)
-    .then((appPath) => {
-      if (!appPath) {
-        log.info(`App *not* built to ${appPath}`);
-        return;
-      }
-      log.info(`App built to ${appPath}`);
-    })
-    .catch((error) => {
-      log.error('Error during build. Run with --verbose for details.', error);
-    });
+  buildNativefierApp(options).catch((error) => {
+    log.error('Error during build. Run with --verbose for details.', error);
+  });
 }

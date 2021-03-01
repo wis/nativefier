@@ -39,7 +39,7 @@ export function getTempDir(prefix: string, mode?: number): string {
 export async function copyFileOrDir(
   sourceFileOrDir: string,
   dest: string,
-): Promise<any> {
+): Promise<void> {
   return new Promise((resolve, reject) => {
     ncp(sourceFileOrDir, dest, (error: any) => {
       if (error) {
@@ -68,8 +68,8 @@ export async function downloadFile(fileUrl: string): Promise<DownloadResult> {
 }
 
 export function getAllowedIconFormats(platform: string): string[] {
-  const hasIdentify = hasbin.sync('identify');
-  const hasConvert = hasbin.sync('convert');
+  const hasIdentify = hasbin.sync('identify') || hasbin.sync('gm');
+  const hasConvert = hasbin.sync('convert') || hasbin.sync('gm');
   const hasIconUtil = hasbin.sync('iconutil');
 
   const pngToIcns = hasConvert && hasIconUtil;
@@ -138,4 +138,16 @@ export function getAllowedIconFormats(platform: string): string[] {
   }
   log.debug(`Allowed icon formats when building for ${platform}:`, formats);
   return formats;
+}
+
+/**
+ * Refuse args like '--n' or '-name', we accept either short '-n' or long '--name'
+ */
+export function isArgFormatInvalid(arg: string): boolean {
+  return (
+    (arg.startsWith('---') ||
+      /^--[a-z]$/i.exec(arg) !== null ||
+      /^-[a-z]{2,}$/i.exec(arg) !== null) &&
+    !['--x', '--y'].includes(arg) // exception for long args --{x,y}
+  );
 }

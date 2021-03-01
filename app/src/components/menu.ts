@@ -220,13 +220,15 @@ export function createMenu({
       {
         label: `Built with Nativefier v${nativefierVersion}`,
         click: () => {
-          shell.openExternal('https://github.com/jiahaog/nativefier');
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          shell.openExternal('https://github.com/nativefier/nativefier');
         },
       },
       {
         label: 'Report an Issue',
         click: () => {
-          shell.openExternal('https://github.com/jiahaog/nativefier/issues');
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          shell.openExternal('https://github.com/nativefier/nativefier/issues');
         },
       },
     ],

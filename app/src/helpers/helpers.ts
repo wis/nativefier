@@ -3,7 +3,6 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { BrowserWindow } from 'electron';
-import wurl from 'wurl';
 
 const INJECT_CSS_PATH = path.join(__dirname, '..', 'inject/inject.css');
 
@@ -33,9 +32,19 @@ export function linkIsInternal(
     return regex.test(newUrl);
   }
 
-  const currentDomain = wurl('domain', currentUrl);
-  const newDomain = wurl('domain', newUrl);
-  return currentDomain === newDomain;
+  try {
+    const currentDomain = new URL(currentUrl).hostname;
+    const newDomain = new URL(newUrl).hostname;
+    return currentDomain === newDomain;
+  } catch (err) {
+    console.warn(
+      'Failed to parse domains as determining if link is internal. From:',
+      currentUrl,
+      'To:',
+      newUrl,
+    );
+    return false;
+  }
 }
 
 export function shouldInjectCss(): boolean {
@@ -63,7 +72,19 @@ export function debugLog(browserWindow: BrowserWindow, message: string): void {
 }
 
 export function getAppIcon(): string {
-  return path.join(__dirname, '..', `icon.${isWindows() ? 'ico' : 'png'}`);
+  // Prefer ICO under Windows, see
+  // https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
+  // https://www.electronjs.org/docs/api/native-image#supported-formats
+  if (isWindows()) {
+    const ico = path.join(__dirname, '..', 'icon.ico');
+    if (fs.existsSync(ico)) {
+      return ico;
+    }
+  }
+  const png = path.join(__dirname, '..', 'icon.png');
+  if (fs.existsSync(png)) {
+    return png;
+  }
 }
 
 export function nativeTabsSupported(): boolean {

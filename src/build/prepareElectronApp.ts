@@ -3,7 +3,6 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import { promisify } from 'util';
 
-import { kebabCase } from 'lodash';
 import * as log from 'loglevel';
 
 import { copyFileOrDir } from '../helpers/helpers';
@@ -16,6 +15,7 @@ const writeFileAsync = promisify(fs.writeFile);
  */
 function pickElectronAppArgs(options: AppOptions): any {
   return {
+    accessibilityPrompt: options.nativefier.accessibilityPrompt,
     alwaysOnTop: options.nativefier.alwaysOnTop,
     appCopyright: options.packager.appCopyright,
     appVersion: options.packager.appVersion,
@@ -45,6 +45,7 @@ function pickElectronAppArgs(options: AppOptions): any {
     ignoreGpuBlacklist: options.nativefier.ignoreGpuBlacklist,
     insecure: options.nativefier.insecure,
     internalUrls: options.nativefier.internalUrls,
+    blockExternalUrls: options.nativefier.blockExternalUrls,
     maxHeight: options.nativefier.maxHeight,
     maximize: options.nativefier.maximize,
     maxWidth: options.nativefier.maxWidth,
@@ -63,9 +64,11 @@ function pickElectronAppArgs(options: AppOptions): any {
     versionString: options.nativefier.versionString,
     width: options.nativefier.width,
     win32metadata: options.packager.win32metadata,
+    disableOldBuildWarning: options.nativefier.disableOldBuildWarning,
     x: options.nativefier.x,
     y: options.nativefier.y,
     zoom: options.nativefier.zoom,
+    buildDate: new Date().getTime(),
   };
 }
 
@@ -103,7 +106,10 @@ function normalizeAppName(appName: string, url: string): string {
   const hash = crypto.createHash('md5');
   hash.update(url);
   const postFixHash = hash.digest('hex').substring(0, 6);
-  const normalized = kebabCase(appName.toLowerCase());
+  const normalized = appName
+    .toLowerCase()
+    .replace(/[,:.]/g, '')
+    .replace(/[\s_]/g, '-');
   return `${normalized}-nativefier-${postFixHash}`;
 }
 
@@ -134,7 +140,7 @@ export async function prepareElectronApp(
   try {
     await copyFileOrDir(src, dest);
   } catch (err) {
-    throw `Error copying electron app from ${src} to temp dir ${dest}. Error: ${err}`;
+    throw `Error copying electron app from ${src} to temp dir ${dest}. Error: ${(err as Error).toString()}`;
   }
 
   const appJsonPath = path.join(dest, '/nativefier.json');

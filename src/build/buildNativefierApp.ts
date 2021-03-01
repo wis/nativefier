@@ -9,7 +9,7 @@ import { isWindows, getTempDir, copyFileOrDir } from '../helpers/helpers';
 import { getOptions } from '../options/optionsMain';
 import { prepareElectronApp } from './prepareElectronApp';
 import { convertIconIfNecessary } from './buildIcon';
-import { AppOptions } from '../options/model';
+import { AppOptions, NativefierOptions } from '../options/model';
 
 const OPTIONS_REQUIRING_WINDOWS_FOR_WINDOWS_BUILD = [
   'icon',
@@ -65,9 +65,8 @@ async function copyIconsIfNecessary(
   }
 
   // windows & linux: put the icon file into the app
-  const destAppPath = path.join(appPath, 'resources/app');
   const destFileName = `icon${path.extname(options.packager.icon)}`;
-  const destIconPath = path.join(destAppPath, destFileName);
+  const destIconPath = path.join(appPath, destFileName);
 
   log.debug(`Copying icon ${options.packager.icon} to`, destIconPath);
   await copyFileOrDir(options.packager.icon, destIconPath);
@@ -91,6 +90,8 @@ function trimUnprocessableOptions(options: AppOptions): void {
     log.warn(
       `*Not* setting [${optionsPresent.join(', ')}], as couldn't find Wine.`,
       'Wine is required when packaging a Windows app under on non-Windows platforms.',
+      'Also, note that Windows apps built under non-Windows platforms without Wine *will lack* certain',
+      'features, like a correct icon and process name. Do yourself a favor and install Wine, please.',
     );
     for (const keyToUnset of optionsPresent) {
       options[keyToUnset] = null;
@@ -98,7 +99,10 @@ function trimUnprocessableOptions(options: AppOptions): void {
   }
 }
 
-export async function buildNativefierApp(rawOptions: any): Promise<string> {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function buildNativefierApp(
+  rawOptions: NativefierOptions,
+): Promise<string> {
   log.info('Processing options...');
   const options = await getOptions(rawOptions);
 
@@ -108,7 +112,8 @@ export async function buildNativefierApp(rawOptions: any): Promise<string> {
 
   log.info('\nConverting icons...');
   options.packager.dir = tmpPath; // const optionsWithTmpPath = { ...options, dir: tmpPath };
-  await convertIconIfNecessary(options);
+  convertIconIfNecessary(options);
+  await copyIconsIfNecessary(options, tmpPath);
 
   log.info(
     "\nPackaging... This will take a few seconds, maybe minutes if the requested Electron isn't cached yet...",
@@ -119,7 +124,19 @@ export async function buildNativefierApp(rawOptions: any): Promise<string> {
 
   log.info('\nFinalizing build...');
   const appPath = getAppPath(appPathArray);
-  await copyIconsIfNecessary(options, appPath);
 
+  if (appPath) {
+    let osRunHelp = '';
+    if (options.packager.platform === 'win32') {
+      osRunHelp = `the contained .exe file.`;
+    } else if (options.packager.platform === 'linux') {
+      osRunHelp = `the contained executable file (prefixing with ./ if necessary)\nMenu/desktop shortcuts are up to you, because Nativefier cannot know where you're going to move the app. Search for "linux .desktop file" for help, or see https://wiki.archlinux.org/index.php/Desktop_entries`;
+    } else if (options.packager.platform === 'darwin') {
+      osRunHelp = `the app bundle.`;
+    }
+    log.info(
+      `App built to ${appPath} , move it wherever it makes sense for you and run ${osRunHelp}`,
+    );
+  }
   return appPath;
 }

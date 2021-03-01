@@ -2,9 +2,9 @@ import * as path from 'path';
 
 export const DEFAULT_APP_NAME = 'APP';
 
-// Update both together
-export const DEFAULT_ELECTRON_VERSION = '8.2.3';
-export const DEFAULT_CHROME_VERSION = '80.0.3987.163';
+// Update both together, and update app / package.json / devDeps / electron
+export const DEFAULT_ELECTRON_VERSION = '11.3.0';
+export const DEFAULT_CHROME_VERSION = '87.0.4280.141';
 
 export const ELECTRON_MAJOR_VERSION = parseInt(
   DEFAULT_ELECTRON_VERSION.split('.')[0],

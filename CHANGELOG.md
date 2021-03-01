@@ -1,4 +1,125 @@
 
+42.3.0 / 2021-02-25
+===================
+
+  * Bump default Electron to 11.3.0 (with Chromium 87.0.4280.141).
+    macOS-segfault-causing icon bug #1101 should remain fixed.
+  * API docs: fix typo in option "-v" (PR #1114)
+  * Get rid of dep `shelljs` and abandoned app dep `wurl`
+  * Bump commander from 4 to 7 and eslint-config-prettier from 7 to 8
+
+42.2.1 / 2021-01-30
+===================
+
+  * Move GitHub repository to [`nativefier/nativefier`](https://github.com/nativefier/nativefier)
+  * Temporarily increase timeout for network call in test
+  * Move TS @types from dependencies to devDependencies (PR #1102)
+
+42.2.0 / 2021-01-18
+===================
+
+  * Revert default Electron back to 11.1.1 (Chrome 87.0.4280.88) (fix #1101)
+    11.2.0 was causing segfaults in macOS.
+
+42.1.0 / 2021-01-16
+===================
+
+  * Bump default Electron to 11.2.0 (with Chromium 87.0.4280.141)
+  * Maintenance:
+    * A bit more filename & appname sanitization
+    * Get rid of two direct deps: cheerio, lodash
+    * Fix error surfacing in full since recent changes in `page-icon`
+    * Publish TS types, for them to show up in npm
+
+42.0.2 / 2020-12-07
+===================
+
+  * Fix arg validation regression in #1080 with `--{x,y}` (fix #1084)
+
+42.0.1 / 2020-12-06
+===================
+
+  * Fix arg validation regression in #1080 (fix #1083)
+
+42.0.0 / 2020-12-06
+===================
+
+This release includes several contributor patches. Thanks @sorhtyre @mattruzzi !
+
+  * **[BREAKING CHANGE] Warn on old Electron/Chrome (fix #556) (PR #1076)**
+    ⚠️ Users packaging kiosk apps running for a long time on internal websites,
+    see https://github.com/nativefier/nativefier/blob/master/docs/api.md#disable-old-build-warning-yesiknowitisinsecure
+  * Check for improperly-formatted arguments (fix #885) (PR #1080)
+  * Correctly start in tray when both `--maximize` and `--tray start-in-tray` are passed (fix #1015) (PR #1079)
+  * Fix icon path error when passing asar `--conceal` flag (fix #975) (PR #1074)
+  * Migrate from Travis CI to GitHub Actions
+  * Bump default Electron to 11.0.3, bump dep eslint-config-prettier to 7.x
+
+Also, bumping npm version to something far away from current Electron version.
+
+Rationale for the nonsensical major version bump: around Nativefier 8.x,
+versions of Nativefier and Electron aligned, by release schedule coincidence.
+Since Nativefier has little breaking changes, it was great: as Electron
+releases are breaking, Nativefier had no breaking changes, I bumped our
+major version on new major Electron, and everything was good.
+
+Except *now*, as I have a breaking change, which would bump Nativefier to
+12.x, being annoyingly confusing since we'd still default to Electron 11 :-/ .
+
+-> To keep respecting semver and reduce confusion, bumping Nativefier
+   version to something far ahead of Electron versions. No it doesn't
+   matter, version number are meaningless anyway (well, outside of
+   semver, whose respect is precisely the point here).
+
+11.0.2 / 2020-11-21
+===================
+
+  * **[BREAKING CHANGE] Bump default Electron to 11.0.2 / Chromium 87**
+  * Support using a Widevine-enabled Electron for DRM playback, see flag `--widevine` (fix #435) (PR #1073)
+
+10.1.5 / 2020-11-08
+===================
+
+  * Bump default Electron to 10.1.5 (with Chromium 85.0.4183.121) (#1066)
+  * Readme: suggest docker "-rm" flag to clean up containers after build (#1064)
+  * Deps bumps: webpack, ts-eslint
+  * CI: Add a node.js 15 build
+
+10.1.0 / 2020-08-29
+===================
+
+  * **[BREAKING CHANGE] Bump default Electron to 10.1.0 / Chromium 85**
+  * Support `arm64` architecture (PR #1037, fix #804)
+  * On successful build, better explain how to run the app and what to do with it (fix #1029)
+  * Bump to TypeScript 4.x
+
+9.2.0 / 2020-08-10
+==================
+
+  * Add `--block-external-urls` flag to forbid external navigation attempts (fix #978, PR#1012)
+  * Restore Docker docs in README, now that Docker build-on-release has been fixed (fix #848)
+  * Emit TS type declarations, and type NativefierOptions (PR #1016)
+  * Emit a warning about incorrectly-named "Electron" process when building windows apps under non-Windows and without Wine (fix #1022)
+  * Add unified {build,test} watch mode, using `concurrently` (PR #1011)
+  * Bump default Electron to 9.2.0
+  * Bump eslint to 7.x
+
+9.1.0 / 2020-07-18
+==================
+
+  * Fix 'Image could not be created' app error on run (fix #992)
+  * Bump docker Node image version from 8 to 12 (#996)
+  * Bump default Electron to 9.1.0 and deps (electron-packager, ts-loader)
+
+9.0.0 / 2020-06-13
+==================
+
+  * **[BREAKING CHANGE] Require Node.js >= 10 and npm >= 6**
+  * **[BREAKING CHANGE] Bump default Electron to 9.0.4**
+  * Bump deps (ts-loader, jest, electron-context-menu)
+  * --help: fix typo, clarify `--icon` helptext (PR #976)
+  * Fix notifications (#88, #956), processEnvs, using as git dep (PR #955)
+
 8.0.7 / 2020-04-22
 ==================
 
@@ -26,7 +147,7 @@
 ==================
 
   * Attempt to fix failing to install due to app yarn install (#923)
-    See https://github.com/jiahaog/nativefier/pull/898#issuecomment-583865045 .
+    See https://github.com/nativefier/nativefier/pull/898#issuecomment-583865045 .
 
 8.0.2 / 2020-03-15
 ==================
@@ -50,7 +171,7 @@ Revamp and move to TypeScript (#898)
 - That's it. Lots of care went into breaking CLI & programmatic behavior
   as little as possible. **Please report regressions**.
 - Known issue: build may fail behind a proxy. Get in touch if you use one:
-  https://github.com/jiahaog/nativefier/issues/907#issuecomment-596144768
+  https://github.com/nativefier/nativefier/issues/907#issuecomment-596144768
 
 ## Changes summary
 
@@ -97,7 +218,7 @@ while **not changing the CLI/programmatic interfaces**. Highlights:
   Bugfixes will come later. Still, these got addressed:
   - Add common `Alt`+`Left`/`Right` for previous/next navigation.
   - Improve #379: fix zoom with `Ctrl` + numpad `+`/`-`
-  - Fix pinch-to-zoom (see https://github.com/jiahaog/nativefier/issues/379#issuecomment-598612128 )
+  - Fix pinch-to-zoom (see https://github.com/nativefier/nativefier/issues/379#issuecomment-598612128 )
 
 
 7.7.1 / 2020-01-23
@@ -527,7 +648,7 @@ while **not changing the CLI/programmatic interfaces**. Highlights:
   * Make debug script automatically open the packaged app on OSX
   * Remove "About Electron" from app menu, add nativefier version to help, which fixes #18
   * Implement `--pretend` flag to easily simulate user agent strings, fixes #11
-  * Merge branch 'master' of github.com:jiahaog/nativefier
+  * Merge branch 'master' of github.com:nativefier/nativefier
   * Fix bug in error when response is undefined
   * Add helper scripts to debug easily
   * Hide app instead of exiting on OSX to fix #14
